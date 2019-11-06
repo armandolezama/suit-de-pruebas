@@ -51,7 +51,7 @@ const getRowsByGrid = (array, gridRow) => {
 const getOneGrid = (array, gridCol) => {
     let newGrid = []
     for(const gridRow of array){
-        newGrid.push(gridRow.slice(gridCol -3, gridCol))
+        newGrid = [...newGrid, ...gridRow.slice(gridCol -3, gridCol)]
     }
     return newGrid
 }
@@ -59,20 +59,35 @@ const getOneGrid = (array, gridCol) => {
 
 const exploreGrid = (array) => {
     let grids = [];
-    grids.push(getOneGrid(getRowsByGrid(array, 3) , 3));
-    return grids
+    for(let gridColumn = 0; gridColumn < 4; gridColumn++){
+        for(let gridRow = 0; gridRow < 4; gridRow++){
+            grids.push(getOneGrid(getRowsByGrid(array, 3 * gridRow) , 3 * gridColumn));
+        }
+        validCase = exploreArray(grids);
+        if([...validCase].length > 0 ){
+            return validCase
+        }
+    }
+    return ""
 }
 
 const evaluateSudoku = (array) => {
     let validCase = "";
     validCase = exploreColumn(array);
     if([...validCase].length > 0 ){
-        return validCase
+        return false
     }
     validCase = exploreRow(array);
     if([...validCase].length > 0 ){
+        return false
+    }
+
+    validCase = exploreGrid(array)
+    if([...validCase].length > 0 ){
         return validCase
+    } else {
+        return true
     }
 }
 
-module.export = evaluateSudoku;
+module.exports = evaluateSudoku;

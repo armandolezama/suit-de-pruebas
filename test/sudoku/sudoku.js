@@ -1,5 +1,5 @@
-assert = require('chai').assert
-evaluateSudoku = require('/../../src/sudoku')
+const assert = require('chai').assert
+const evaluateSudoku = require('../../src/sudoku/sudoku.js')
 
 test('Valid case', () => {
     assert.isTrue(evaluateSudoku([
