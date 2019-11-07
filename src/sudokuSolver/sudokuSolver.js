@@ -4,32 +4,29 @@ const getRowsByGrid = (array, gridRow) => array.slice(gridRow - 3, gridRow);
 
 const getOneGrid = (array, gridCol) => array.reduce((newGrid, gridRow) => newGrid = [...newGrid, ...gridRow.slice(gridCol -3, gridCol)], []);
 
+const getProtoGrid = (array, coordinate, gridOperation) => array.reduce( gridToWork => {
+        switch(true){
+            case coordinate[0] < 3:
+            gridToWork = gridOperation(array, 3)
+            break
+            case coordinate[0] < 6:
+            gridToWork = gridOperation(array, 6)
+            break
+            case coordinate[0] < 9:
+            gridToWork = gridOperation(array, 9)
+            break
+        }
+        return gridToWork
+    }, [])
+
+
 // @todo Encapsular switch con reduce
 const getNumbersByGrid = (array, coordinates) => {
-    let gridToWork = [];
-    switch(true){
-        case coordinates[0] < 3:
-        gridToWork = getRowsByGrid(array, 3)
-        break
-        case coordinates[0] < 6:
-        gridToWork = getRowsByGrid(array, 6)
-        break
-        case coordinates[0] < 9:
-        gridToWork = getRowsByGrid(array, 9)
-        break
-    }
+    let gridToWork = []
     
-    switch(true){
-        case coordinates[1] < 3:
-        gridToWork = getOneGrid(gridToWork, 3)
-        break
-        case coordinates[1] < 6:
-        gridToWork = getOneGrid(gridToWork, 6)
-        break
-        case coordinates[1] < 9:
-        gridToWork = getOneGrid(gridToWork, 9)
-        break
-    }
+    gridToWork = getProtoGrid(array, coordinates[0], getRowsByGrid);
+
+    gridToWork = getProtoGrid(gridToWork, coordinates[1], getOneGrid)
     
     return getMissingNumbers(gridToWork)
 }
