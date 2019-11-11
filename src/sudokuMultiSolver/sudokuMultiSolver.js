@@ -2,6 +2,7 @@ const {getNumbersByColumn} = require('../sudokuSolver/sudokuSolver');
 const {getMissingNumbers} = require('../sudokuSolver/sudokuSolver');
 const {getNumbersByGrid} = require('../sudokuSolver/sudokuSolver');
 const {setNumbersByCoordinate} = require('../sudokuSolver/sudokuSolver');
+const evaluateSudoku = require('../../src/sudoku/sudoku')
 
 const buildSolution = (totalArray, individualArray) => {
     for(const element of totalArray){
@@ -18,13 +19,15 @@ const buildSolution = (totalArray, individualArray) => {
 
 const writeValueByCoordinate = (firstSolutions, puzzle) => {
     for(const element of firstSolutions){
-        puzzle[element.x][element.y] = element.rs
+        if(element.rs.length === 1){
+            puzzle[element.x][element.y] = element.rs[0]
+        }
     }
     return puzzle
 }
 
 
-const findZeroCoordinates = (array) => {
+const findZeroCoordinates = array => {
     let zeroCoordinates = [];
     for(const row in array){
         for(const column in array[row]) {
@@ -36,6 +39,9 @@ const findZeroCoordinates = (array) => {
             })
         }
     }
+    for(const element of zeroCoordinates){
+        element.rs = setNumbersByCoordinate(getNumbersByColumn(array, element.y), getMissingNumbers(array[element.x]), getNumbersByGrid(array, [element.x,element.y]))
+    }
 
     return zeroCoordinates;
 }
@@ -46,8 +52,8 @@ const getStatus = (newCoordinates) => {
     let status = {
         findAZero: false,
         findAOne: false,
-        runFirstLevelTest: false,
-        runSecondLevelTest: false
+        isUnsolved: true,
+        runFirstLevelTest: true
     }
     do{
         if(newCoordinates[index].rs.length === 1){
@@ -55,7 +61,7 @@ const getStatus = (newCoordinates) => {
         } else if(newCoordinates[index].rs.length === 0){
             status.findAZero = true
             status.findAOne = false
-        }
+        } 
         index++
     } while (!status.findAOne && !status.findAZero && index < newCoordinates.length)
 
@@ -87,7 +93,6 @@ const solveSudokuTest = (array) => {
         }
         for(const element of coordinatesAndResolutions){
             element.rs = setNumbersByCoordinate(getNumbersByColumn(array, element.y), getMissingNumbers(array[element.x]), getNumbersByGrid(array, [element.x,element.y]))
-            
             if(element.rs.length === 1){
                 array[element.x][element.y] = element.rs[0]
             }
@@ -96,11 +101,43 @@ const solveSudokuTest = (array) => {
     return array
 }
 
-const solveMultiSudoku = () => {}
+const solveMultiSudoku = (array) => {
+    let allPossibleSolutions = setCounters(findZeroCoordinates(array))
+    let firstSolutions = buildSolution(allPossibleSolutions, [])
+    let puzzleForSolutions = writeValueByCoordinate(firstSolutions, array)
+    let newCoordinates = findZeroCoordinates(puzzleForSolutions)
+    let status = getStatus(newCoordinates)
+    let puzzleForTestSolution = array
+    do{
+        if(status.findAZero){
+            allPossibleSolutions = setCounters(allPossibleSolutions)
+            status.findAZero = false
+            firstSolutions = buildSolution(allPossibleSolutions, [])
+            puzzleForSolutions = writeValueByCoordinate(firstSolutions, array)
+            newCoordinates = findZeroCoordinates(puzzleForSolutions)
+            status = getStatus(newCoordinates)
+        } else if(status.findAOne){
+            puzzleForTestSolution = writeValueByCoordinate(newCoordinates, puzzleForSolutions)
+            newCoordinates = findZeroCoordinates(puzzleForTestSolution)
+            if(evaluateSudoku(puzzleForTestSolution) && newCoordinates.length == 0){
+                status.isUnsolved = false
+            } else {
+                status = getStatus(newCoordinates)
+            }
+        }
+        
+    if(firstSolutions.length === 0){status.runFirstLevelTest = false}
+    } while(status.isUnsolved && status.runFirstLevelTest)
+
+    console.log(status)
+    // return {status, puzzleForTestSolution}
+    return puzzleForSolutions
+}
 
 module.exports = {
     solveSudokuTest, 
     buildSolution, 
     writeValueByCoordinate,
     getStatus,
-    setCounters}
+    setCounters,
+    solveMultiSudoku}
