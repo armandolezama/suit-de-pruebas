@@ -1,7 +1,7 @@
 const assert = require('chai').assert
 const {findZeroCoordinates} = require('../../src/sudokuSolver/sudokuSolver');
 const {getNumbersByColumn} = require('../../src/sudokuSolver/sudokuSolver');
-const {getNumbersByRow} = require('../../src/sudokuSolver/sudokuSolver');
+const {getMissingNumbers} = require('../../src/sudokuSolver/sudokuSolver');
 const {getNumbersByGrid} = require('../../src/sudokuSolver/sudokuSolver');
 const {setNumbersByCoordinate} = require('../../src/sudokuSolver/sudokuSolver');
 const {solveSudoku} = require('../../src/sudokuSolver/sudokuSolver');
@@ -57,7 +57,7 @@ suite('Sudoku Solver', () => {
             [0, 0, 0, 4, 1, 9, 0, 0, 5],
             [0, 0, 0, 0, 8, 0, 0, 7, 9]];
         const answer = [1,2,4,5,7,9];
-        assert.deepEqual(getNumbersByRow(puzzle, 3), answer);  
+        assert.deepEqual(getMissingNumbers(puzzle[3]), answer);  
     });
 
     test('Get numbers from grid', () => {

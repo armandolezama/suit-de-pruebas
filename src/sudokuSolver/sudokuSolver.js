@@ -6,13 +6,13 @@ const getOneGrid = (array, gridCol) => array.reduce((newGrid, gridRow) => newGri
 
 const getProtoGrid = (array, coordinate, gridOperation) => array.reduce( gridToWork => {
         switch(true){
-            case coordinate[0] < 3:
+            case coordinate < 3:
             gridToWork = gridOperation(array, 3)
             break
-            case coordinate[0] < 6:
+            case coordinate < 6:
             gridToWork = gridOperation(array, 6)
             break
-            case coordinate[0] < 9:
+            case coordinate < 9:
             gridToWork = gridOperation(array, 9)
             break
         }
@@ -21,19 +21,8 @@ const getProtoGrid = (array, coordinate, gridOperation) => array.reduce( gridToW
 
 
 // @todo Encapsular switch con reduce
-const getNumbersByGrid = (array, coordinates) => {
-    let gridToWork = []
-    
-    gridToWork = getProtoGrid(array, coordinates[0], getRowsByGrid);
+const getNumbersByGrid = (array, coordinates) => getMissingNumbers(getProtoGrid(getProtoGrid(array, coordinates[0], getRowsByGrid), coordinates[1], getOneGrid))
 
-    gridToWork = getProtoGrid(gridToWork, coordinates[1], getOneGrid)
-    
-    return getMissingNumbers(gridToWork)
-}
-
-const getNumbersByRow = (array, row) => {
-    return getMissingNumbers(array[row])
-}
 
 const getNumbersByColumn = (array, column) => {
     let numberGetted = [];
@@ -58,16 +47,7 @@ const findZeroCoordinates = (array) => {
     return zeroCoordinates;
 }
 
-const setNumbersByCoordinate = (resultColumn, resultRow, resultGrid) => {
-    let array = resultColumn.filter(value => resultRow.includes(value))
-    array = array.filter(value => resultGrid.includes(value))
-    return array
-}
-
-const substituteValue = (array, objectValues) => {
-    array[objectValues.x][objectValues.y] = objectValues.rs[0]
-    return array
-}
+const setNumbersByCoordinate = (resultColumn, resultRow, resultGrid) => resultColumn.filter(value => resultRow.includes(value)).filter(value => resultGrid.includes(value))
 
 
 const solveSudoku = (array) => {
@@ -79,26 +59,21 @@ const solveSudoku = (array) => {
             return array
         }
         for(const element of coordinatesAndResolutions){
-            let columnNumbers = getNumbersByColumn(array, element.y)
-            let rowNumbers = getNumbersByRow(array, element.x)
-            let gridNumbers = getNumbersByGrid(array, [element.x,element.y])
-    
-            element.rs = setNumbersByCoordinate(columnNumbers, rowNumbers, gridNumbers)
+            element.rs = setNumbersByCoordinate(getNumbersByColumn(array, element.y), getMissingNumbers(array[element.x]), getNumbersByGrid(array, [element.x,element.y]))
             
             if(element.rs.length === 1){
-                array = substituteValue(array, element)
+                array[element.x][element.y] = element.rs[0]
             }
         }
     }
     return array
-    
 }
 
 module.exports = {
     findZeroCoordinates,
     getNumbersByColumn,
-    getNumbersByRow,
     getNumbersByGrid,
+    getMissingNumbers,
     setNumbersByCoordinate,
     solveSudoku
 }
