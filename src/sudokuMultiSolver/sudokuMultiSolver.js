@@ -108,6 +108,7 @@ const solveMultiSudoku = (array) => {
     let newCoordinates = findZeroCoordinates(puzzleForSolutions)
     let status = getStatus(newCoordinates)
     let puzzleForTestSolution = array
+    let solutions = []
     do{
         if(status.findAZero){
             allPossibleSolutions = setCounters(allPossibleSolutions)
@@ -115,19 +116,28 @@ const solveMultiSudoku = (array) => {
             firstSolutions = buildSolution(allPossibleSolutions, [])
             puzzleForSolutions = writeValueByCoordinate(firstSolutions, array)
             newCoordinates = findZeroCoordinates(puzzleForSolutions)
-            status = getStatus(newCoordinates)
+            console.log(newCoordinates)
+            if(newCoordinates.length === 0){
+                status.runFirstLevelTest = false
+            } else {
+                status = getStatus(newCoordinates)
+            }
         } else if(status.findAOne){
             puzzleForTestSolution = writeValueByCoordinate(newCoordinates, puzzleForSolutions)
             newCoordinates = findZeroCoordinates(puzzleForTestSolution)
             if(evaluateSudoku(puzzleForTestSolution) && newCoordinates.length == 0){
                 status.isUnsolved = false
+                solutions.push(puzzleForTestSolution)
+                console.log(puzzleForTestSolution)
+                status.findAOne = false
+                status.findAZero = true
             } else {
                 status = getStatus(newCoordinates)
             }
         }
         
     if(firstSolutions.length === 0){status.runFirstLevelTest = false}
-    } while(status.isUnsolved && status.runFirstLevelTest)
+    } while(status.runFirstLevelTest)
 
     console.log(status)
     // return {status, puzzleForTestSolution}
