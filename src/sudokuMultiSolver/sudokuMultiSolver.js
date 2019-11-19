@@ -4,6 +4,18 @@ const {getNumbersByGrid} = require('../sudokuSolver/sudokuSolver');
 const {setNumbersByCoordinate} = require('../sudokuSolver/sudokuSolver');
 const evaluateSudoku = require('../../src/sudoku/sudoku')
 
+const getLongestRS = allPossibleSolutions => {
+    let pivot  = {
+        rs: []
+    }
+    for(const solution of allPossibleSolutions){
+        if(solution.rs.length > pivot.rs.length){
+            pivot = solution
+        }
+    }
+    return pivot
+}
+
 const buildSolution = (totalArray, individualArray) => {
     for(const element of totalArray){
         if(element.counter > 0){
@@ -109,6 +121,7 @@ const solveMultiSudoku = (array) => {
     let status = getStatus(newCoordinates)
     let puzzleForTestSolution = array
     let solutions = []
+    let i = 0
     do{
         if(status.findAZero){
             allPossibleSolutions = setCounters(allPossibleSolutions)
@@ -116,7 +129,7 @@ const solveMultiSudoku = (array) => {
             firstSolutions = buildSolution(allPossibleSolutions, [])
             puzzleForSolutions = writeValueByCoordinate(firstSolutions, array)
             newCoordinates = findZeroCoordinates(puzzleForSolutions)
-            if(newCoordinates.length === 0){
+            if(newCoordinates.length === 0 || firstSolutions.length === 0){
                 status.runFirstLevelTest = false
             } else {
                 status = getStatus(newCoordinates)
@@ -132,14 +145,27 @@ const solveMultiSudoku = (array) => {
             } else {
                 status = getStatus(newCoordinates)
             }
+        } else {
+            allPossibleSolutions = setCounters(allPossibleSolutions)
+            status.findAZero = false
+            firstSolutions = buildSolution(allPossibleSolutions, [])
+            puzzleForSolutions = writeValueByCoordinate(firstSolutions, array)
+            newCoordinates = findZeroCoordinates(puzzleForSolutions)
+            if(newCoordinates.length === 0 || firstSolutions.length === 0){
+                status.runFirstLevelTest = false
+            } else {
+                status = getStatus(newCoordinates)
+            }
         }
-        
-    if(firstSolutions.length === 0){status.runFirstLevelTest = false}
+        i++
+    if(firstSolutions.length === 0 || i > 1000000){status.runFirstLevelTest = false}
     } while(status.runFirstLevelTest)
-
+    console.log(allPossibleSolutions)
     console.log(status)
+    console.log(firstSolutions)
+    console.log(newCoordinates)
     // return {status, puzzleForTestSolution}
-    return puzzleForSolutions
+    return solutions
 }
 
 module.exports = {
@@ -148,4 +174,5 @@ module.exports = {
     writeValueByCoordinate,
     getStatus,
     setCounters,
-    solveMultiSudoku}
+    solveMultiSudoku,
+    getLongestRS}
