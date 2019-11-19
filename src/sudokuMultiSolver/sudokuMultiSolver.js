@@ -23,10 +23,7 @@ const findZeroCoordinates = array => {
     return zeroCoordinates;
 }
 
-const getLongestRS = allSolutions => {
-    let pivot  = {
-        rs: []
-    }
+const getLongestRS = (allSolutions, pivot)=> {
     for(const solution in allSolutions){
         if(allSolutions[solution].rs.length > pivot.rs.length){
             pivot = allSolutions[solution]
@@ -36,7 +33,7 @@ const getLongestRS = allSolutions => {
     return pivot
 }
 
-const organizeSolutions = (array, pivot) => [...array.slice(0, pivot.counter), ...array.slice(pivot.counter, array.length - 1)]
+const organizeSolutions = (array, pivot) => [...array.slice(0, pivot.counter), ...array.slice(pivot.counter + 1, array.length - 1)]
 
 const excludeEqualsByRow = (arrayOfSolutions, pivot, currentValue) => {
     for(const solution of arrayOfSolutions){
@@ -78,9 +75,9 @@ const excludeEqualsByGrid = (arrayOfSolutions, pivot, currentValue) => {
 
 const buildSolution = (totalArray, pivot, index) => {
     totalArray = organizeSolutions(totalArray, pivot)
-    excludeEqualsByRow(totalArray, pivot, index)
-    excludeEqualsByColumn(totalArray, pivot, index)
-    excludeEqualsByGrid(totalArray, pivot, index)
+    totalArray = excludeEqualsByRow(totalArray, pivot, index)
+    totalArray = excludeEqualsByColumn(totalArray, pivot, index)
+    totalArray = excludeEqualsByGrid(totalArray, pivot, index)
     return totalArray
 }
 
@@ -104,13 +101,23 @@ const getStatus = (newCoordinates) => {
     return status
 }
 
-const reduceToOneSolution = () => {
+const findSolutions = (totalArray, pivot) => {
+    let solutions = []
     let status = Object
     for(const index in pivot.rs){
         totalArray = buildSolution(totalArray, pivot, index)
         status = getStatus(totalArray)
+        if(status.isAnyRsBiggerThanOne){
+            status.isAnyRsBiggerThanOne = false
+            let newPivot = getLongestRS(totalArray, {rs:[]})
+            findSolutions(totalArray, newPivot)
+        } else if(!status.isAnyRsEqualToZero && !status.isAnyRsBiggerThanOne){
+            solutions = [...solutions, totalArray]
+        } else if (status.isAnyRsEqualToZero){
+            status.isAnyRsEqualToZero = false
+        }
     }
-
+    return solutions
 }
 
 const writeValueByCoordinate = (firstSolutions, puzzle) => {
@@ -156,15 +163,22 @@ const solveSudokuTest = (array) => {
     return array
 }
 
-const solveMultiSudoku = (array) => {
+const solveMultiSudoku = array => {
     let allPossibleSolutions = findZeroCoordinates(array)
-    let pivot = getLongestRS(allPossibleSolutions)
-    let solutions = []
-    
-    
+    let pivot = getLongestRS(allPossibleSolutions, {rs: []})
+    console.log(allPossibleSolutions)
+    allPossibleSolutions = organizeSolutions(allPossibleSolutions, pivot)
+    console.log(allPossibleSolutions)
+    let solutions = findSolutions(allPossibleSolutions, pivot)
+    let puzzlesSolved = []
+    if(solutions.length > 0){
+        for (const solution of solutions){
+            puzzlesResolved += writeValueByCoordinate(solution, array)
+        }
+    }
 
     // return {status, puzzleForTestSolution}
-    return solutions
+    return puzzlesSolved
 }
 
 module.exports = {
@@ -178,3 +192,4 @@ module.exports = {
     excludeEqualsByRow,
     excludeEqualsByColumn,
     excludeEqualsByGrid}
+
