@@ -5,6 +5,9 @@ const {getStatus} = require('../../src/sudokuMultiSolver/sudokuMultiSolver');
 const {setCounters} = require('../../src/sudokuMultiSolver/sudokuMultiSolver');
 const {solveMultiSudoku} = require('../../src/sudokuMultiSolver/sudokuMultiSolver');
 const {getLongestRS} = require('../../src/sudokuMultiSolver/sudokuMultiSolver');
+const {excludeEqualsByRow} = require('../../src/sudokuMultiSolver/sudokuMultiSolver');
+const {excludeEqualsByColumn} = require('../../src/sudokuMultiSolver/sudokuMultiSolver');
+const {excludeEqualsByGrid} = require('../../src/sudokuMultiSolver/sudokuMultiSolver');
 
 suite('Sudoku Multi Solver', () => {
 
@@ -27,17 +30,17 @@ suite('Sudoku Multi Solver', () => {
             counter: 0,
             rs: [7,9,1,4]
         }]
-        const firstSolutions = {
+        const pivot = {
             x: 3,
             y: 2,
-            counter: 0,
+            counter: 1,
             rs: [3,8,9,4]
         }
         const emptyFirstSolution = []
-        assert.deepEqual(getLongestRS(allPosibleSolutions, emptyFirstSolution), firstSolutions);
+        assert.deepEqual(getLongestRS(allPosibleSolutions, emptyFirstSolution), pivot);
     })
 
-    test('Build Solution by second arr and first element', () => {
+    test('Exclude equals by row', () => {
         const allPosibleSolutions = [{
             x: 4,
             y: 8,
@@ -51,49 +54,137 @@ suite('Sudoku Multi Solver', () => {
             rs: [3,8,9]
         },
         {
-            x: 6,
+            x: 3,
             y: 7,
             counter: 0,
             rs: [7,9,1]
         }]
-        const firstSolutions = [{
+        const pivot = {
             x: 3,
-            y: 2,
-            rs: 3
-        }]
-        assert.deepEqual(buildSolution(allPosibleSolutions, []), firstSolutions);
-    })
-
-    test('Build Solution by first and third arr and first and second element', () => {
-        const allPosibleSolutions = [{
+            y: 5,
+            rs: [3,4]
+        }
+        const solution = [{
             x: 4,
             y: 8,
-            counter: 1,
+            counter: 0,
             rs: [1,4,8]
         },
         {
             x: 3,
             y: 2,
+            counter: 1,
+            rs: [8,9]
+        },
+        {
+            x: 3,
+            y: 7,
             counter: 0,
+            rs: [7,9,1]
+        }]
+        assert.deepEqual(excludeEqualsByRow(allPosibleSolutions, pivot, 0), solution);
+    })
+
+    test('Exclude equals by Column', () => {
+        const allPosibleSolutions = [{
+            x: 4,
+            y: 2,
+            counter: 0,
+            rs: [1,4,3]
+        },
+        {
+            x: 3,
+            y: 2,
+            counter: 1,
+            rs: [3,8,9]
+        },
+        {
+            x: 3,
+            y: 7,
+            counter: 0,
+            rs: [7,9,1]
+        }]
+        const pivot = {
+            x: 3,
+            y: 2,
+            rs: [3,4]
+        }
+        const solution = [{
+            x: 4,
+            y: 2,
+            counter: 0,
+            rs: [1,4]
+        },
+        {
+            x: 3,
+            y: 2,
+            counter: 1,
+            rs: [8,9]
+        },
+        {
+            x: 3,
+            y: 7,
+            counter: 0,
+            rs: [7,9,1]
+        }]
+        assert.deepEqual(excludeEqualsByColumn(allPosibleSolutions, pivot, 0), solution);
+    })
+
+    test('Exclude equals by Grid', () => {
+        const allPosibleSolutions = [{
+            x: 6,
+            y: 2,
+            counter: 0,
+            rs: [1,4,3]
+        },
+        {
+            x: 3,
+            y: 4,
+            counter: 1,
             rs: [3,8,9]
         },
         {
             x: 6,
-            y: 7,
-            counter: 2,
-            rs: [7,9,1]
-        }]
-        const firstSolutions = [{
+            y: 5,
+            counter: 0,
+            rs: [3,7,9,1]
+        },
+        {
             x: 4,
-            y: 8,
-            rs: 1
+            y: 1,
+            counter: 0,
+            rs: [3,7,9,1]
+        }]
+        const pivot = {
+            x: 3,
+            y: 2,
+            rs: [3,4]
+        }
+        const solution = [{
+            x: 6,
+            y: 2,
+            counter: 0,
+            rs: [1,4,3]
+        },
+        {
+            x: 3,
+            y: 4,
+            counter: 1,
+            rs: [3,8,9]
         },
         {
             x: 6,
-            y: 7,
-            rs: 9
+            y: 5,
+            counter: 0,
+            rs: [3,7,9,1]
+        },
+        {
+            x: 4,
+            y: 1,
+            counter: 0,
+            rs: [7,9,1]
         }]
-        assert.deepEqual(buildSolution(allPosibleSolutions, []), firstSolutions);
+        assert.deepEqual(excludeEqualsByGrid(allPosibleSolutions, pivot, 0), solution);
     })
 
     test('Write value by coordinate', () => {
@@ -136,13 +227,13 @@ suite('Sudoku Multi Solver', () => {
                 x: 4,
                 y: 8,
                 counter: 1,
-                rs: [1,4,8]
+                rs: [1]
             },
             {
                 x: 6,
                 y: 7,
                 counter: 2,
-                rs: [7,9,1]
+                rs: [7]
             },
             {
                 x: 3,
@@ -160,13 +251,13 @@ suite('Sudoku Multi Solver', () => {
                 x: 6,
                 y: 7,
                 counter: 2,
-                rs: [1]
+                rs: [1,7,6]
             }]
         
         const status = {
-            findAZero: true,
-            findAOne: false,
-            isUnsolved: true,
+            isAnyRsEqualToZero: true,
+            isAnyRsBiggerThanOne: false,
+            isValidSolution: false,
             runFirstLevelTest: true
         }
         assert.deepEqual(getStatus(newCoordinates), status)
@@ -206,9 +297,9 @@ suite('Sudoku Multi Solver', () => {
             }]
         
         const status = {
-            findAZero: false,
-            findAOne: true,
-            isUnsolved: true,
+            isAnyRsEqualToZero: false,
+            isAnyRsBiggerThanOne: true,
+            isValidSolution: false,
             runFirstLevelTest: true
         }
         assert.deepEqual(getStatus(newCoordinates), status)

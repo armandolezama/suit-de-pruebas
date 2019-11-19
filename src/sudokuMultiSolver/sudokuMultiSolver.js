@@ -4,41 +4,6 @@ const {getNumbersByGrid} = require('../sudokuSolver/sudokuSolver');
 const {setNumbersByCoordinate} = require('../sudokuSolver/sudokuSolver');
 const evaluateSudoku = require('../../src/sudoku/sudoku')
 
-const getLongestRS = allPossibleSolutions => {
-    let pivot  = {
-        rs: []
-    }
-    for(const solution of allPossibleSolutions){
-        if(solution.rs.length > pivot.rs.length){
-            pivot = solution
-        }
-    }
-    return pivot
-}
-
-const buildSolution = (totalArray, individualArray) => {
-    for(const element of totalArray){
-        if(element.counter > 0){
-            individualArray.push(
-                {
-                    x: element.x, 
-                    y: element.y,
-                    rs: element.rs[element.counter - 1]})
-        }
-    }
-    return individualArray
-}
-
-const writeValueByCoordinate = (firstSolutions, puzzle) => {
-    for(const element of firstSolutions){
-        if(element.rs.length === 1){
-            puzzle[element.x][element.y] = element.rs[0]
-        }
-    }
-    return puzzle
-}
-
-
 const findZeroCoordinates = array => {
     let zeroCoordinates = [];
     for(const row in array){
@@ -58,27 +23,105 @@ const findZeroCoordinates = array => {
     return zeroCoordinates;
 }
 
+const getLongestRS = allSolutions => {
+    let pivot  = {
+        rs: []
+    }
+    for(const solution in allSolutions){
+        if(allSolutions[solution].rs.length > pivot.rs.length){
+            pivot = allSolutions[solution]
+            pivot.counter = parseInt(solution)
+        }
+    }
+    return pivot
+}
+
+const organizeSolutions = (array, pivot) => [...array.slice(0, pivot.counter), ...array.slice(pivot.counter, array.length - 1)]
+
+const excludeEqualsByRow = (arrayOfSolutions, pivot, currentValue) => {
+    for(const solution of arrayOfSolutions){
+        if(pivot.x === solution.x){
+            solution.rs = solution.rs.filter(possibleValues => possibleValues !== pivot.rs[currentValue] )
+        }
+    }
+    return arrayOfSolutions
+}
+
+const excludeEqualsByColumn = (arrayOfSolutions, pivot, currentValue) => {
+    for(const solution of arrayOfSolutions){
+        if(pivot.y === solution.y){
+            solution.rs = solution.rs.filter(possibleValues => possibleValues !== pivot.rs[currentValue] )
+        }
+    }
+    return arrayOfSolutions
+}
+
+const getGridCoordinate = axis => {
+    switch(true){
+        case axis < 3:
+        return 1
+        case axis < 6:
+        return 2
+        case axis < 9:
+        return 3
+    }
+}
+
+const excludeEqualsByGrid = (arrayOfSolutions, pivot, currentValue) => {
+    for(const solution of arrayOfSolutions){
+        if(getGridCoordinate(pivot.x) === getGridCoordinate(solution.x) && getGridCoordinate(pivot.y) === getGridCoordinate(solution.y)){
+            solution.rs = solution.rs.filter(possibleValues => possibleValues !== pivot.rs[currentValue])
+        }
+    }
+    return arrayOfSolutions
+}
+
+const buildSolution = (totalArray, pivot, index) => {
+    totalArray = organizeSolutions(totalArray, pivot)
+    excludeEqualsByRow(totalArray, pivot, index)
+    excludeEqualsByColumn(totalArray, pivot, index)
+    excludeEqualsByGrid(totalArray, pivot, index)
+    return totalArray
+}
 
 const getStatus = (newCoordinates) => {
     let index = 0;
     let status = {
-        findAZero: false,
-        findAOne: false,
-        isUnsolved: true,
+        isAnyRsEqualToZero: false,
+        isAnyRsBiggerThanOne: false,
+        isValidSolution: false,
         runFirstLevelTest: true
     }
     do{
-        if(newCoordinates[index].rs.length === 1){
-            status.findAOne = true
-        } else if(newCoordinates[index].rs.length === 0){
-            status.findAZero = true
-            status.findAOne = false
-        } 
+        if(newCoordinates[index].rs.length > 1){
+            status.isAnyRsBiggerThanOne = true
+        }
+        if(newCoordinates[index].rs.length === 0){
+            status.isAnyRsEqualToZero = true
+        }
         index++
-    } while (!status.findAOne && !status.findAZero && index < newCoordinates.length)
-
+    } while (!status.isAnyRsEqualToZero && !status.isAnyRsBiggerThanOne && index < newCoordinates.length)
     return status
 }
+
+const reduceToOneSolution = () => {
+    let status = Object
+    for(const index in pivot.rs){
+        totalArray = buildSolution(totalArray, pivot, index)
+        status = getStatus(totalArray)
+    }
+
+}
+
+const writeValueByCoordinate = (firstSolutions, puzzle) => {
+    for(const element of firstSolutions){
+        if(element.rs.length === 1){
+            puzzle[element.x][element.y] = element.rs[0]
+        }
+    }
+    return puzzle
+}
+
 
 const setCounters = array => {
     let index = 0
@@ -114,56 +157,12 @@ const solveSudokuTest = (array) => {
 }
 
 const solveMultiSudoku = (array) => {
-    let allPossibleSolutions = setCounters(findZeroCoordinates(array))
-    let firstSolutions = buildSolution(allPossibleSolutions, [])
-    let puzzleForSolutions = writeValueByCoordinate(firstSolutions, array)
-    let newCoordinates = findZeroCoordinates(puzzleForSolutions)
-    let status = getStatus(newCoordinates)
-    let puzzleForTestSolution = array
+    let allPossibleSolutions = findZeroCoordinates(array)
+    let pivot = getLongestRS(allPossibleSolutions)
     let solutions = []
-    let i = 0
-    do{
-        if(status.findAZero){
-            allPossibleSolutions = setCounters(allPossibleSolutions)
-            status.findAZero = false
-            firstSolutions = buildSolution(allPossibleSolutions, [])
-            puzzleForSolutions = writeValueByCoordinate(firstSolutions, array)
-            newCoordinates = findZeroCoordinates(puzzleForSolutions)
-            if(newCoordinates.length === 0 || firstSolutions.length === 0){
-                status.runFirstLevelTest = false
-            } else {
-                status = getStatus(newCoordinates)
-            }
-        } else if(status.findAOne){
-            puzzleForTestSolution = writeValueByCoordinate(newCoordinates, puzzleForSolutions)
-            newCoordinates = findZeroCoordinates(puzzleForTestSolution)
-            if(evaluateSudoku(puzzleForTestSolution) && newCoordinates.length == 0){
-                status.isUnsolved = false
-                solutions.push(puzzleForTestSolution)
-                status.findAOne = false
-                status.findAZero = true
-            } else {
-                status = getStatus(newCoordinates)
-            }
-        } else {
-            allPossibleSolutions = setCounters(allPossibleSolutions)
-            status.findAZero = false
-            firstSolutions = buildSolution(allPossibleSolutions, [])
-            puzzleForSolutions = writeValueByCoordinate(firstSolutions, array)
-            newCoordinates = findZeroCoordinates(puzzleForSolutions)
-            if(newCoordinates.length === 0 || firstSolutions.length === 0){
-                status.runFirstLevelTest = false
-            } else {
-                status = getStatus(newCoordinates)
-            }
-        }
-        i++
-    if(firstSolutions.length === 0 || i > 1000000){status.runFirstLevelTest = false}
-    } while(status.runFirstLevelTest)
-    console.log(allPossibleSolutions)
-    console.log(status)
-    console.log(firstSolutions)
-    console.log(newCoordinates)
+    
+    
+
     // return {status, puzzleForTestSolution}
     return solutions
 }
@@ -175,4 +174,7 @@ module.exports = {
     getStatus,
     setCounters,
     solveMultiSudoku,
-    getLongestRS}
+    getLongestRS,
+    excludeEqualsByRow,
+    excludeEqualsByColumn,
+    excludeEqualsByGrid}
