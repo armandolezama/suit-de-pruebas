@@ -105,18 +105,20 @@ const findSolutions = (totalArray, pivot) => {
     let solutions = []
     let status = Object
     for(const index in pivot.rs){
-        totalArray = buildSolution(totalArray, pivot, index)
-        status = getStatus(totalArray)
+        let newtotalArray = buildSolution(totalArray, pivot, index)
+        status = getStatus(newtotalArray)
+        console.log(newtotalArray)
         if(status.isAnyRsBiggerThanOne){
             status.isAnyRsBiggerThanOne = false
-            let newPivot = getLongestRS(totalArray, {rs:[]})
-            findSolutions(totalArray, newPivot)
+            let newPivot = getLongestRS(newtotalArray, {rs:[]})
+            findSolutions(newtotalArray, newPivot)
         } else if(!status.isAnyRsEqualToZero && !status.isAnyRsBiggerThanOne){
-            solutions = [...solutions, totalArray]
+            solutions = [...solutions, newtotalArray]
         } else if (status.isAnyRsEqualToZero){
             status.isAnyRsEqualToZero = false
         }
     }
+    console.log(solutions)
     return solutions
 }
 
