@@ -5,54 +5,76 @@ const getSpacesPosition = string => {
         if ([...string][index] === " ") {
             positions = [...positions, parseInt(index)]
             };
-    }
+    };
     return positions
-}
+};
 
 const delSpaces = string => string.replace(/ /g, '');
 
-const moveByArray = myLongArray => {
-    myLongArray = [...myLongArray]
-    const mayorArray = [];
-    iteration = 0;
-    while (myLongArray.length > 10) {
-        mayorArray[iteration] = myLongArray.splice(0 ,10);
-        iteration++
+const shiftNPlacesToTheRigth = (string, n) => {
+    if([...string].length <= n){
+        return moveByModule(string, n % string.length)
+    } else {
+        return moveByArray([...string], n)
     }
-    if(myLongArray.length > 0){
-        mayorArray[iteration] = myLongArray;
-    };
-    const myNewString = [...mayorArray.slice(1, mayorArray.length).join('')];
-
-    return [...myNewString.filter(letter => letter !== ','),...mayorArray[0].join('') ].join('')
 }
 
 const moveByModule = (string, numberModule) => {
     const startPosition = string.length - numberModule;
     const finalPosition = string.length
     return [...string.slice(startPosition, finalPosition), ...string.slice(0, startPosition)].join('');
+};
+
+const moveByArray = (myLongArray, n) => {
+    const mayorArray = [];
+    iteration = 0;
+    while (myLongArray.length > n) {
+        mayorArray[iteration] = myLongArray.splice(0 ,n);
+        iteration++
+    }
+    if(myLongArray.length > 0){
+        mayorArray[iteration] = myLongArray;
+    };
+
+    return [...[...mayorArray.slice(1, mayorArray.length).join('')].filter(letter => letter !== ','),...mayorArray[0].join('') ].join('')
+};
+
+const reasignSpaces = (string, positions) => {
+    string = [...string]
+    for(const position of positions){
+        string.splice(position, 0, ' ')
+    }
+    return string.join('')
 }
 
-const shiftTenPlacesToTheRigth = string => {
-    if([...string].length <= 10){
-        return moveByModule(string, 10 % string.length)
-    } else {
-        return moveByArray(string)
+const splitAndApply = (string, apply, n) => {
+    string = string.split(' ');
+    for(const word in string){
+        string[word] = apply(string[word], n);
+    };
+    return string.join(' ');
+};
+
+const IterativeRotationCipher = {
+    encode: (n,str) => {
+        while (n > 0) {
+            let zeroPositions = getSpacesPosition(str);
+            str = delSpaces(str);
+            str = shiftNPlacesToTheRigth(str, n);
+            str = reasignSpaces(str, zeroPositions);
+            str = splitAndApply(str, shiftNPlacesToTheRigth, n);
+            n - 1
+        };
+        return str;
+    },
+    decode: () => {
+
     }
 }
 
-// const longString = `This
-// is
-// a
-// long
-// string`
-
-// Array.from(longString).join(' ').toString()
-
-// const myBigArray = [['string'],['and other']]
-
-// const myString = myBigArray.join()
-
-// [...myString].filter(letter => letter !== ',').join('')
-
-module.exports = {getSpacesPosition, delSpaces, moveByModule, shiftTenPlacesToTheRigth, moveByArray}
+module.exports = {getSpacesPosition, 
+delSpaces, 
+moveByModule, 
+shiftNPlacesToTheRigth, 
+moveByArray, 
+reasignSpaces, splitAndApply}
