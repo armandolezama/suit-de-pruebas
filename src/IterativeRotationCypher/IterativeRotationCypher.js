@@ -11,7 +11,7 @@ const getSpacesPosition = string => {
 
 const delSpaces = string => string.replace(/ /g, '');
 
-const shiftNPlacesToTheRigth = (string, n) => {
+const shiftNPlacesToTheRight = (string, n) => {
     if([...string].length <= n){
         return moveByModule(string, n % string.length)
     } else {
@@ -58,11 +58,20 @@ const splitAndApply = (string, apply, n) => {
 const IterativeRotationCipher = {
     encode: (n,str) => {
         while (n > 0) {
-            let zeroPositions = getSpacesPosition(str);
-            str = delSpaces(str);
-            str = shiftNPlacesToTheRigth(str, n);
+            let zeroPositions = [];
+            for(const index in [...str]) {
+                if ([...str][index] === " ") {
+                    positions = [...positions, parseInt(index)]
+                    };
+            };
+            str.replace(/ /g, '');
+             if([...str].length <= n){
+                return moveByModule(str, n % str.length)
+            } else {
+                return moveByArray([...str], n)
+            };
             str = reasignSpaces(str, zeroPositions);
-            str = splitAndApply(str, shiftNPlacesToTheRigth, n);
+            str = splitAndApply(str, shiftNPlacesToTheRight, n);
             n - 1
         };
         return str;
@@ -75,6 +84,6 @@ const IterativeRotationCipher = {
 module.exports = {getSpacesPosition, 
 delSpaces, 
 moveByModule, 
-shiftNPlacesToTheRigth, 
+shiftNPlacesToTheRight, 
 moveByArray, 
 reasignSpaces, splitAndApply}

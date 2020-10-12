@@ -1,7 +1,9 @@
-const {getNumbersByColumn} = require('../sudokuSolver/sudokuSolver');
-const {getMissingNumbers} = require('../sudokuSolver/sudokuSolver');
-const {getNumbersByGrid} = require('../sudokuSolver/sudokuSolver');
-const {setNumbersByCoordinate} = require('../sudokuSolver/sudokuSolver');
+const {
+    getNumbersByColumn, 
+    getMissingNumbers, 
+    getNumbersByGrid, 
+    setNumbersByCoordinate} = require('../sudokuSolver/sudokuSolver');
+
 const evaluateSudoku = require('../../src/sudoku/sudoku')
 
 const findZeroCoordinates = array => {
@@ -23,7 +25,7 @@ const findZeroCoordinates = array => {
     return zeroCoordinates;
 }
 
-const getLongestRS = (allSolutions, pivot)=> {
+const getLongestRS = (allSolutions, pivot) => {
     for(const solution in allSolutions){
         if(allSolutions[solution].rs.length > pivot.rs.length){
             pivot = allSolutions[solution]
